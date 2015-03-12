@@ -1,0 +1,12 @@
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\InfoView.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\InfoView.pdb
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\Assembly-CSharp.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\ColossalManaged.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\ICities.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\UnityEngine.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\UnityEngine.UI.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\UnityScript.Lang.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\ICSharpCode.SharpZipLib.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\Boo.Lang.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\obj\Debug\InfoView.dll
+c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\obj\Debug\InfoView.pdb
