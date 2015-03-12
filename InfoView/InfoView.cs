@@ -35,6 +35,8 @@ namespace InfoView
 		private int x = 0;
 		private CameraController controller;
 		public static InfoView instance;
+
+        private List<Camera> RenderCameras;
 		public static void Initialize(GameObject traffic)
 		{
 			var controller = GameObject.FindObjectOfType<CameraController>();
@@ -42,13 +44,32 @@ namespace InfoView
 			instance.controller = controller;
 			instance.enabled = true;
 			instance.traffic = traffic;
+
 			instance.InvokeRepeating("GetScreenshot", 1, 5);
+
 		}
 
 		public void GetScreenshot()
 		{
 			InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.Traffic, InfoManager.SubInfoMode.Default);
 			StartCoroutine(SaveScreenshot_RenderToTexAsynch("c:\\temp\\render.png"));
+
+            try
+            {
+                var data = new FastList<IDataContainer>();
+                InfoManager.instance.GetData(data);
+                FileStream fileStream = new FileStream("c:\\temp\\file.txt", FileMode.Create);
+                DataSerializer.SerializeArray<IDataContainer>(fileStream, DataSerializer.Mode.Full, 1, data.ToArray());
+                fileStream.Flush();
+                fileStream.Close();
+                fileStream.Dispose();
+
+            }
+            catch (Exception e)
+            {
+                Debugger.Debug(e.Message);
+                Debugger.Debug(e.StackTrace);
+            }
 
 		}
 	
