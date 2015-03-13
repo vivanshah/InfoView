@@ -11,6 +11,8 @@ using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
 using UnityScript;
+using ColossalFramework;
+using System.Reflection;
 
 namespace InfoView
 {
@@ -35,42 +37,43 @@ namespace InfoView
 		private int x = 0;
 		private CameraController controller;
 		public static InfoView instance;
+        public static InfoManager.InfoMode currentInfoMode;
+        public static InfoManager.SubInfoMode currentSubInfoMode;
 
-        private List<Camera> RenderCameras;
+
+        public Color m_lightColor = new Color(0.847f, 0.808f, 0.753f);
+        public Color m_ambientColor = new Color(0.376f, 0.502f, 0.627f);
+        public float m_lightIntensity = 1f;
+        public Color m_neutralColor = new Color(0.73f, 0.73f, 0.73f);
+        public Color m_activeColor = new Color(0.80f, 0.0f, 0.0f);
+        public Color m_activeColorB = new Color(0.0f, 0.80f, 0.0f);
+        private MethodInfo dynMethod;
 		public static void Initialize(GameObject traffic)
 		{
 			var controller = GameObject.FindObjectOfType<CameraController>();
+
 			instance = controller.gameObject.AddComponent<InfoView>();
 			instance.controller = controller;
 			instance.enabled = true;
 			instance.traffic = traffic;
+            instance.dynMethod = InfoManager.instance.GetType().GetMethod("SetMode", BindingFlags.NonPublic | BindingFlags.Instance);
+
 
 			instance.InvokeRepeating("GetScreenshot", 1, 5);
 
+
+
 		}
 
-		public void GetScreenshot()
-		{
-			InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.Traffic, InfoManager.SubInfoMode.Default);
-			StartCoroutine(SaveScreenshot_RenderToTexAsynch("c:\\temp\\render.png"));
+        public void GetScreenshot()
+        {
+            currentInfoMode = InfoManager.instance.CurrentMode;
+            currentSubInfoMode = InfoManager.instance.CurrentSubMode;
+            //InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.Traffic, InfoManager.SubInfoMode.Default);
 
-            try
-            {
-                var data = new FastList<IDataContainer>();
-                InfoManager.instance.GetData(data);
-                FileStream fileStream = new FileStream("c:\\temp\\file.txt", FileMode.Create);
-                DataSerializer.SerializeArray<IDataContainer>(fileStream, DataSerializer.Mode.Full, 1, data.ToArray());
-                fileStream.Flush();
-                fileStream.Close();
-                fileStream.Dispose();
 
-            }
-            catch (Exception e)
-            {
-                Debugger.Debug(e.Message);
-                Debugger.Debug(e.StackTrace);
-            }
-
+			//StartCoroutine(SaveScreenshot_RenderToTexAsynch("c:\\temp\\render.png"));
+            //StartCoroutine(GetColorMap("c:\\temp\\render.png"));
 		}
 	
 		private void PrintStuff()
@@ -82,7 +85,7 @@ namespace InfoView
 				mainCamera.enabled = false;
 				mainCamera.CopyFrom(Camera.main);
 				//Debugger.Debug("mainCamera cullingMask: " + Convert.ToString(mainCamera.cullingMask, 2));
-				Debugger.Debug("Attempting screenshot");
+                InfoViewDebugger.Debug("Attempting screenshot");
 				//InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.Traffic,InfoManager.SubInfoMode.Default);
 
 				//var infoCamera = new Camera();
@@ -100,7 +103,7 @@ namespace InfoView
 
 				mainCamera.targetTexture = tempRT;
 				mainCamera.Render();
-				Debugger.Debug("took picture");
+                InfoViewDebugger.Debug("took picture");
 				RenderTexture.active = tempRT;
 				var virtualPhoto =
 					new Texture2D(1366, 768, TextureFormat.RGB24, false);
@@ -111,7 +114,7 @@ namespace InfoView
 
 				byte[] bytes;
 				bytes = virtualPhoto.EncodeToPNG();
-				Debugger.Debug("bytes: " + bytes.Length);
+                InfoViewDebugger.Debug("bytes: " + bytes.Length);
 				System.IO.File.WriteAllBytes(
 					"c:\\temp\\render2.png", bytes);
 				RenderTexture.active = null; //can help avoid errors 
@@ -120,19 +123,34 @@ namespace InfoView
 			}
 			catch (Exception e)
 			{
-				Debugger.Debug(e.Message);
-				Debugger.Debug(e.StackTrace);
-				Debugger.Debug(e.InnerException.Message);
-				Debugger.Debug(e.InnerException.StackTrace);
+                InfoViewDebugger.Debug(e.Message);
+                InfoViewDebugger.Debug(e.StackTrace);
+                InfoViewDebugger.Debug(e.InnerException.Message);
+                InfoViewDebugger.Debug(e.InnerException.StackTrace);
 			}
 		//	InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.None, InfoManager.SubInfoMode.Default);
 		}
 
+        private IEnumerator GetColorMap(string filePath)
+        {
+            yield return new WaitForEndOfFrame();
+            Texture2D screenShot = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, true);
+            Singleton<NetManager>.instance.UpdateSegmentColors();
+           var success = Singleton<NetManager>.instance.UpdateColorMap(screenShot);
+           InfoViewDebugger.Debug("screenshot :" + success.ToString());
+            //Split the process up
+			yield return 0;
 
+			byte[] bytes = screenShot.EncodeToPNG();
+			File.WriteAllBytes(filePath, bytes);
+            InfoManager.instance.SetCurrentMode(currentInfoMode, currentSubInfoMode);
+        }
 		private IEnumerator SaveScreenshot_RenderToTexAsynch(string filePath)
 		{
 			//Wait for graphics to render
+            dynMethod.Invoke(InfoManager.instance, new object[] { InfoManager.InfoMode.Traffic, InfoManager.SubInfoMode.Default });
 			yield return new WaitForEndOfFrame();
+
 
 			RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 24);
 			//Texture2D screenShot = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
@@ -140,22 +158,24 @@ namespace InfoView
 
 			//Camera.main.targetTexture = rt;
 			//Camera.main.Render();
-
 			//Render from all!
+            
+            
+
 			foreach (Camera cam in Camera.allCameras)
 			{
 				if (cam.name.ToLower().Contains("ui")) continue;
 				cam.targetTexture = rt;
-				cam.Render();
+                cam.Render();
 				cam.targetTexture = null;
 			}
-			InfoManager.instance.SetCurrentMode(InfoManager.InfoMode.None, InfoManager.SubInfoMode.Default);
+            dynMethod.Invoke(InfoManager.instance,new object[] {InfoManager.InfoMode.None,InfoManager.SubInfoMode.Default});
+			//InfoManager.instance.SetCurrentMode(currentInfoMode, currentSubInfoMode);
 			RenderTexture.active = rt;
 			screenShot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
 			Camera.main.targetTexture = null;
 			RenderTexture.active = null; //Added to avoid errors
 			Destroy(rt);
-
 			//Split the process up
 			yield return 0;
 
@@ -165,14 +185,14 @@ namespace InfoView
 
 		}
 
-		
+
 	}
 
 	public class ModLoad : LoadingExtensionBase
 	{
 		public override void OnLevelLoaded(LoadMode mode)
 		{
-			Debugger.Debug("There are " + Camera.allCamerasCount + " cameras");
+            InfoViewDebugger.Debug("There are " + Camera.allCamerasCount + " cameras");
 			var mainCamera = Camera.allCameras.First();
 			//Debugger.Debug("Main camera initial mask: " + Convert.ToString(mainCamera.cullingMask, 2));
 			/*var trafficObjects = FindMatchingObjects("traffic");
@@ -207,7 +227,7 @@ namespace InfoView
 		}
 	}
 
-	public static class Debugger
+	public static class InfoViewDebugger
 	{
 		public static void Debug(string message)
 		{

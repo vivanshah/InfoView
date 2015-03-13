@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="ChirpLogger\ChirpLogger.cs" />
     <Compile Include="ChirpLogger\ChirpLogger.Internal\Chirp.cs" />
+    <Compile Include="Debugger.cs" />
     <Compile Include="InfoView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
