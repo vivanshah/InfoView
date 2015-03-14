@@ -10,4 +10,3 @@ c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debu
 c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\bin\Debug\Boo.Lang.dll
 c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\obj\Debug\InfoView.dll
 c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\obj\Debug\InfoView.pdb
-c:\users\vivans\documents\visual studio 2013\Projects\InfoView\InfoView\obj\Debug\InfoView.csprojResolveAssemblyReference.cache
